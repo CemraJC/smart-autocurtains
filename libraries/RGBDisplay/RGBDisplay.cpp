@@ -34,6 +34,7 @@ void RGBDisplay::update() {
 		if (elapsed_time < 0) { // Then the millis has rolled back to 0.
 			// Discard reading and restart the flash now.
 			// May experience minor jumpiness for a single cycle.
+			if (DEBUGGING) {Serial.println("Millis has rolled to 0 - resetting flash start.");}
 			flash_spec.start_time = millis();
 			return;
 		}
@@ -42,7 +43,6 @@ void RGBDisplay::update() {
 
 		// Find out how many flashes we've done and time since last one
 		unsigned long total_flashes = elapsed_time / flash_len; // an integer!
-
 
 		// Stop flashing if we're at / over(how?) the limit
 		// If it's 0, there is no limit.
@@ -97,6 +97,16 @@ void RGBDisplay::off() {
 	if (DEBUGGING) {Serial.println("RGB LED turned off.");}
 	action = OFF; // Set current action
 	set_state(0, 0, 0); // Turn all LEDs to state 0
+}
+
+// Returns true or false based on whether or not the LED is on/doing something
+bool RGBDisplay::active() {
+	return action != OFF;
+}
+
+// Only returns true if a flashing cycle is running
+bool RGBDisplay::is_flashing() {
+	return action == FLASH;
 }
 
 void RGBDisplay::set_state(bool r, bool g, bool b) {

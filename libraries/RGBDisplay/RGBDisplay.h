@@ -51,7 +51,7 @@ public:
 	RGBDisplay(short r_pin=5, short g_pin=6, short b_pin=7);
 
 	// Toggle between two states asynchronously with parameters
-	void flash(bool r_on, bool g_on, bool b_on, unsigned int num_flashes = 0, unsigned int on_len = 1000, unsigned int off_len = 1000, bool r_off = 0, bool g_off = 0, bool b_off = 0);
+	void flash(bool r_on, bool g_on, bool b_on, unsigned int num_flashes=0, unsigned int on_len=1000, unsigned int off_len=1000, bool r_off=0, bool g_off=0, bool b_off=0);
 
 	// Shorter flash aliases
 	void pip(bool r, bool g, bool b, int between=1200, unsigned int num_flashes = 0) { // 30ms on-time
@@ -63,6 +63,10 @@ public:
 
 	// Simply turn on the LED with given color combo
 	void solid(bool r, bool g, bool b);
+	
+	// Returns true or false based on whether or not the LED is on/doing something
+	bool active();
+	bool is_flashing(); // Only returns true if a flashing cycle is running
 
 	void off();
 	void update(); // Call every polling loop to update LED display based on current "action".

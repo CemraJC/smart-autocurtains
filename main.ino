@@ -27,7 +27,7 @@ void setup() {
 
 	// stepper.setRpm(10); 
 	// rotation_dir = EEPROM[0]; // CW
-	rgb_out.pip(1, 0, 0);
+	rgb_out.flash(1, 0, 0, 10);
 }
 
 void loop() {
