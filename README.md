@@ -235,8 +235,6 @@ adjusting the curtains, so they move with less friction, or by upgrading the
 stepper motor to one with higher torque. A stepper upgrade is difficult work,
 and is left as an exercise only to advanced users. 
 
-I will not be corresponding with anyone asking how to upgrade their system.
-
 ## Something is probably broken.
 
 If there are no green flashes on startup, confirm that the LEDs are functional.
