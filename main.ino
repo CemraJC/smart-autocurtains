@@ -4,7 +4,6 @@
 #include <EEPROM.h>
 #include <RGBDisplay.h>
 
-#define ushort unsigned short
 
 CheapStepper stepper (8,9,10,11); 
 
@@ -13,14 +12,14 @@ CheapStepper stepper (8,9,10,11);
 
 RGBDisplay rgb_out(5,6,7);
 
-ushort num_pins = 2;
-ushort pin_list[] = {BTN_OPEN, BTN_CLOSE};
+unsigned short num_pins = 2;
+unsigned short pin_list[] = {BTN_OPEN, BTN_CLOSE};
 
 bool last_btn_state = 0;
 bool rotation_dir;
 
 void setup() {
-	for (ushort i = 0; i < num_pins; ++i) {
+	for (unsigned short i = 0; i < num_pins; ++i) {
 		pinMode(pin_list[i], INPUT);
 	}
 
@@ -28,6 +27,7 @@ void setup() {
 
 	// stepper.setRpm(10); 
 	// rotation_dir = EEPROM[0]; // CW
+	rgb_out.pip(1, 0, 0);
 }
 
 void loop() {
@@ -42,6 +42,6 @@ void loop() {
 
 	// stepper.moveDegrees(rotation_dir, 360);
 
-	rgb_out.on(1,1,0);
-	delay(1000);
+	rgb_out.update();
+	delay(1); // At least a 1 ms pause, for heat dissipation.
 }
