@@ -1,77 +1,98 @@
-# RGBDisplay
+# InputControl
 
-Controls an RGB LED or a combination of red, green and blue LEDs.
+Handles checking for user input and providing hooks to respond to it.
+Also provides a class to handle sensor input
 
 ## Usage
 
-Initialization:
-
 ```cpp
-// Initialize the pins
-RGBDisplay rgb(red_led_pin, green_led_pin, blue_led_pin);
+// Set up the pins for user input devices.
+UserInputControl input(open_button_pin, close_button_pin, ir_remote_receiver_pin);
+
+// Set up pins for sensor input devices
+SensorInputControl sensors(light_sensor_pin, temperature_sensor_pin);
 ```
 
-Methods:
+Note that every user input method is debounced. This means a rising/falling
+edge must occur for at least 20ms before it is classed as an input stroke (for
+buttons.)
+
+## Methods for UserInputControl
+
+### Global (defined on both)
 
 ```cpp
-	void flash(bool r_on, bool g_on, bool b_on, unsigned int num_flashes=0, 
-			   unsigned int on_len=1000, unsigned int off_len=1000, 
-			   bool r_off=0, bool g_off=0, bool b_off=0)
+void poll();
 ```
 
-This is the longest method for initializing a two-phase flashing sequence. You
-can define an "on_state" and an "off_state" (which is literally off by
-default) and you can control the length of time (in ms) in which the states
-remain on. You can also specify a number of flashes before the system
-automatically turns off.
+Checks the current input state and updates the internal system. Very important
+for debouncing and receiving remote input.
 
-*Tip:* You can use flash to turn the LED on (solid) for a period of time by
-setting the on_len to the desired time and num_flashes to 1.
-
-**Note:** You must call the `update()` method in a polling loop to ensure the
-flashes actually update.
+### Buttons
 
 ```cpp
-	void pip(bool r, bool g, bool b, int between=1200, unsigned int num_flashes = 0)
-	void blink(bool r, bool g, bool b, int between=2000, unsigned int num_flashes = 0)
+bool open_pressed();
 ```
 
-The `pip()` and `blink()` methods are short aliases for `flash()` that define
-the off_state to be literally off and pre-defined on_state lengths of 30ms and
-230ms for a "pip" and a "blink".
+Returns true if the open button is pressed (but not both!)
 
 ```cpp
-	void solid(bool r, bool g, bool b)
+bool close_pressed();
 ```
 
-Turns the LED on with the given state - the values of `r`, `g` and `b` (either
-1 or 0) choose whether or not the red, green or blue LED is lit.
-
-These values are digital (no colour mixing)
+Returns true if the close button is pressed (but not both!)
 
 ```cpp
-bool active()
+bool both_pressed();
 ```
 
-Returns true if the LED is doing something, and false otherwise.
+Returns true if both buttons are pressed.
 
 ```cpp
-bool is_flashing()
+bool any_buttons_pressed();
 ```
 
-Returns true only if the LED is flashing.
+Returns true if any button is pressed.
+
 
 ```cpp
-void off()
+Button buttons_pressed();
 ```
 
-Turns off the LED completely and cancels any current action.
+Returns "OPEN", "CLOSE", "BOTH" or "NONE" depending on the combination of buttons being pressed.
+
+Warning: This method is debounced.
 
 ```cpp
-void update()
+Button last_button_pressed();
 ```
 
-Must be called in a polling loop. If issues with timing arise, it is possible
-that the polling loop takes too long to complete. As long as the poll cycle is
-faster than the individual flash phases, you should not experience dramatic
-desyncing or skipping.
+Returns the last real button we got (not NONE).
+
+```cpp
+unsigned long last_button_press_time();
+```
+
+Returns the ms timestamp of the last button press.
+
+```cpp
+unsigned long time_to_last_press();
+```
+
+Returns the number of ms to the last time a button press was detected.
+
+### Remote Control
+
+```cpp
+bool is_receiving(); 
+```
+
+Returns true if we have cached a new signal.
+
+```cpp
+long remote_signal();
+```
+
+Returns the remote's signal that was received and resumes listening for new signal.
+
+## Methods for SensorInputControl

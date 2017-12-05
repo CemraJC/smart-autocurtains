@@ -1,137 +1,92 @@
 /*
 
-Title: RGBDisplay Library Definitions
+Title: RGBDisplay Library
 Author: Jason Cemra
-Date: 04/12/2017
+Date: 02/12/2017
+
+Description:
+
+	This library asynchonously handles the state of an input system comprised
+	of buttons and a remote.
 
 */
 
-#include "RGBDisplay.h"
+#ifndef RGBDISPLAY_H
+#define RGBDISPLAY_H
 
-/*
-Set up the display controller and set pin modes
-*/
-RGBDisplay::RGBDisplay(short red=5, short green=6, short blue=7) {
-	pins[0] = red;
-	pins[1] = green;
-	pins[2] = blue;
+#include "Arduino.h"
+#include <IRremote.h>
 
-	for (short i = 0; i < 3; ++i) {
-		pinMode(pins[i], OUTPUT);
-	}
+// Allow the use of a debugging hook
+#ifndef DEBUG
+#define DEBUG true
+#endif
 
-	if (DEBUGGING) {Serial.println("RGBDisplay set up complete.");}
-}
+#if DEBUG
+#	define DBG_PRINT(...)    Serial.print(__VA_ARGS__)
+#	define DBG_PRINTLN(...)  Serial.println(__VA_ARGS__)
+#else
+#	define DBG_PRINT(...)
+#	define DBG_PRINTLN(...)
+#endif
 
-void RGBDisplay::update() {
-	// The only action that needs asynchronous updates
-	if (action == FLASH) {
-		// we know current state
-
-		// calculate what it should be at this time
-		unsigned long elapsed_time = millis() - flash_spec.start_time;
-
-		if (elapsed_time < 0) { // Then the millis has rolled back to 0.
-			// Discard reading and restart the flash now.
-			// May experience minor jumpiness for a single cycle.
-			if (DEBUGGING) {Serial.println("Millis has rolled to 0 - resetting flash start.");}
-			flash_spec.start_time = millis();
-			return;
-		}
-
-		unsigned int flash_len = flash_spec.on_len + flash_spec.off_len;
-
-		// Find out how many flashes we've done and time since last one
-		unsigned long total_flashes = elapsed_time / flash_len; // an integer!
-
-		// Stop flashing if we're at / over(how?) the limit
-		// If it's 0, there is no limit.
-		if (flash_spec.num_flashes != 0 && total_flashes >= flash_spec.num_flashes) {
-			off(); // Cancels flash mode
-			return;
-		}
-
-		unsigned int time_since_last = elapsed_time % flash_len;
-
-		// Find out the phase of the flash we're in and update state if necessary
-		if (time_since_last <= flash_spec.on_len && !equal(state, flash_spec.on_state))  // if we should be in on phase and we're not...
-		{ 
-			if (DEBUGGING) {Serial.println("RGB LED Flash On");}
-			set_state(flash_spec.on_state[0], flash_spec.on_state[1], flash_spec.on_state[2]);
-		} 
-		else if (time_since_last > flash_spec.on_len && !equal(state, flash_spec.off_state)) // we should be in off phase and we're not...
-		{ 
-			if (DEBUGGING) {Serial.println("RGB LED Flash Off");}
-			set_state(flash_spec.off_state[0], flash_spec.off_state[1], flash_spec.off_state[2]);
-		}
-	}
-}
-
-void RGBDisplay::solid(bool r, bool g, bool b) {
-	if (r || g || b) { // Need at least one to be on before solid
-		if (DEBUGGING) {Serial.println("RGB LED solid initialized.");}
-		action = SOLID; // Set current action being performed
-		set_state(r, g, b);
-	} else {
-		off();
-	}
-}
-
-void RGBDisplay::flash(bool r_on, bool g_on, bool b_on, unsigned int num_flashes = 0, unsigned int on_len = 1000, unsigned int off_len = 1000, bool r_off = 0, bool g_off = 0, bool b_off = 0) {
-	if (DEBUGGING) {Serial.println("RGB LED flash initialized.");}
-	action = FLASH;
-	flash_spec.on_state[0] = r_on;
-	flash_spec.on_state[1] = g_on;
-	flash_spec.on_state[2] = b_on;
-	flash_spec.off_state[0] = r_off;
-	flash_spec.off_state[1] = g_off;
-	flash_spec.off_state[2] = b_off;
-	flash_spec.num_flashes = num_flashes;
-	flash_spec.start_time = millis();
-	flash_spec.on_len = on_len;
-	flash_spec.off_len = off_len;
-}
+#define MIN_POLL_DELAY 5 // ms to wait before polling again.
+#define DEBOUNCE_DELAY 30 // ms to wait before locking in a signal as true.
 
 
-void RGBDisplay::off() {
-	if (DEBUGGING) {Serial.println("RGB LED turned off.");}
-	action = OFF; // Set current action
-	set_state(0, 0, 0); // Turn all LEDs to state 0
-}
+enum Button {
+	OPEN,
+	CLOSE,
+	BOTH,
+	NONE
+};
 
-// Returns true or false based on whether or not the LED is on/doing something
-bool RGBDisplay::active() {
-	return action != OFF;
-}
+class SensorInputControl {
 
-// Only returns true if a flashing cycle is running
-bool RGBDisplay::is_flashing() {
-	return action == FLASH;
-}
+};
 
-void RGBDisplay::set_state(bool r, bool g, bool b) {
-	// Set the current state
-	state[0] = r;
-	state[1] = g;
-	state[2] = b;
+class UserInputControl {
+public:
+	UserInputControl(short open_pin, short close_pin, short ir_pin);
 
-	// Make LED reflect current state
-	for (short i = 0; i < 3; ++i) {
-		if (state[i]) {
-			digitalWrite(pins[i], HIGH);
-		} else {
-			digitalWrite(pins[i], LOW);
-		}
-	}
-}
+	void poll(); // Updates internal state
 
-// Check if two state arrays are equal
-bool RGBDisplay::equal(bool array1[], bool array2[]) {
-    for(int i = 0; i < 3; ++i) {
-        if(array1[i] != array2[i]) {
-            return false;
-        }
-    }
-    return true;
-}
+	Button buttons_pressed();
+	Button last_button_pressed();
 
+	// Buttons
+	bool open_pressed();
+	bool close_pressed();
+	bool both_pressed(); 
+	bool any_buttons_pressed();
+
+	unsigned long last_button_press_time();
+	unsigned long time_to_last_press();
+
+	// Remote
+	bool is_receiving();
+	long remote_signal();
+
+private:
+	// Pins:
+	short open_pin;
+	short close_pin;
+	short ir_pin;
+
+	// For debouncing:
+	Button last_button = NONE; // Stores last button pressed (or none)
+	Button last_real_button = NONE; // Stores last real button pressed (not none - for multi-click detection)
+	Button last_debounced_button = NONE; // Stores last button pressed (or none) debounced
+
+	unsigned long last_edge_time; // Stores the time of the last rising/falling edge.
+	unsigned long last_poll_time; // Stores last time we polled buttons (don't want to overdo it)
+	unsigned long last_real_button_time; // Stores last time we got a real button (i.e. not none)
+
+	// For the remote:
+	IRrecv remote;
+	long last_signal;
+	long latest_signal;
+	decode_results remote_results;
+};
+
+#endif

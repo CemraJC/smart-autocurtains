@@ -79,8 +79,8 @@ should still be a simple procedure. If you have difficulties, try changing the
 remote you are using and making sure the remote is functional.
 
 To check that your remote has battery, point a smartphone camera at the IR LED
-on the front. Then, press a button. If the camera shows a white flash, then
-the remote is functional.
+on the front. Then, press a button. If the camera shows a flash, then the
+remote is functional.
 
 To record which buttons do what, follow these steps:
 
