@@ -27,6 +27,8 @@ void setup() {
 
 	Serial.begin(9600);
 
+	input.init();
+
 	// stepper.setRpm(10); 
 	// rotation_dir = EEPROM[0]; // CW
 	// rgb_out.flash(1, 0, 0, 10);
@@ -45,10 +47,9 @@ void loop() {
 	// stepper.moveDegrees(rotation_dir, 360);
 
 
-	if (input.is_receiving()) {
+	if (input.new_signal()) {
 		Serial.println(input.remote_signal(), HEX);
 	}
-	delay(100);
 	// rgb_out.update();
 
 	delay(1); // At least a 1 ms pause, for heat dissipation.

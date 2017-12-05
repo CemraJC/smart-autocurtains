@@ -1,5 +1,7 @@
 # RGBDisplay
 
+>Author: Jason Cemra
+
 Controls an RGB LED or a combination of red, green and blue LEDs.
 
 ## Usage

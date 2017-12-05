@@ -1,5 +1,7 @@
 # InputControl
 
+>Author: Jason Cemra
+
 Handles checking for user input and providing hooks to respond to it.
 Also provides a class to handle sensor input
 
@@ -19,6 +21,7 @@ buttons.)
 
 ## Methods for UserInputControl
 
+
 ### Global (defined on both)
 
 ```cpp
@@ -27,6 +30,16 @@ void poll();
 
 Checks the current input state and updates the internal system. Very important
 for debouncing and receiving remote input.
+
+Each method that returns an input also fires a poll event (however, not more
+often than the minimum poll waiting period)
+
+```cpp
+unsigned long time_since_input();
+```
+
+Returns the time (in ms) since the last input event
+
 
 ### Buttons
 
@@ -81,6 +94,7 @@ unsigned long time_to_last_press();
 
 Returns the number of ms to the last time a button press was detected.
 
+
 ### Remote Control
 
 ```cpp
@@ -95,4 +109,13 @@ long remote_signal();
 
 Returns the remote's signal that was received and resumes listening for new signal.
 
+```cpp
+unsigned long get_last_signal_time();
+```
+
+Returns the timestamp (in ms) of the last remote input event.
+
+
 ## Methods for SensorInputControl
+
+(Not done)

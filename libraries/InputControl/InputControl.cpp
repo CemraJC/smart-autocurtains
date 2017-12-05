@@ -8,18 +8,17 @@ Date: 05/12/2017
 
 #include "InputControl.h"
 
-UserInputControl::UserInputControl(short open_pin, short close_pin, short ir_pin) : open_pin(open_pin), close_pin(close_pin), ir_pin(ir_pin), remote(ir_pin) {
+
+/* GLOBAL */
+
+void UserInputControl::init() {
 	pinMode(open_pin, INPUT);
 	pinMode(close_pin, INPUT);
 	pinMode(ir_pin, INPUT);
 
-	IRrecv remote(ir_pin);
-
 	DBG_PRINTLN("UserInputControl: Enabling IRin");
 	remote.enableIRIn(); // Start the receiver's interrupt loop
 	DBG_PRINTLN("UserInputControl: Enabled IRin");
-
-	DBG_PRINTLN("UserInputControl Initialized.");
 }
 
 
@@ -38,6 +37,8 @@ void UserInputControl::poll() {
 	// We only resume listening if the output is retrieved.
 	if(remote.decode(&remote_results)) {
 		latest_signal = remote_results.value;
+		new_signal_trigger = true;
+		last_remote_signal_time = millis();
 		remote.resume();
 	}
 
@@ -79,6 +80,13 @@ void UserInputControl::poll() {
 	last_poll_time = millis();
 }
 
+// Returns shortest time since last input event
+unsigned long time_since_input() {
+	return millis() - max(last_remote_signal_time, last_button_press_time);
+}
+
+/* BUTTONS */
+
 Button UserInputControl::buttons_pressed() {
 	poll();
 	return last_debounced_button;
@@ -117,19 +125,23 @@ unsigned long UserInputControl::time_to_last_press() {
 	return millis() - last_real_button_time;
 }
 
+
+/* REMOTE */
+
 // Returns true only if we have a new signal
 bool UserInputControl::new_signal() {
 	poll();
-	if (latest_signal != last_signal) {
-		last_signal = latest_signal;
-		return true;
-	} else {
-		return false;
-	}
+	return new_signal_trigger;
 }
 
+// Returns last signal we received
 long UserInputControl::remote_signal() {
 	poll();
-	last_signal = latest_signal;
+	new_signal_trigger = false; // signal retrieved - no longer new.
 	return latest_signal;
+}
+
+// Returns timestamp of last signal
+unsigned long get_last_signal_time() {
+	return last_remote_signal_time;
 }

@@ -18,11 +18,11 @@ Description:
 #include <IRremote.h>
 
 // Allow the use of a debugging hook
-#ifndef DEBUG
-#define DEBUG true
+#ifndef DEBUGGING
+#define DEBUGGING true
 #endif
 
-#if DEBUG
+#if DEBUGGING
 #	define DBG_PRINT(...)    Serial.print(__VA_ARGS__)
 #	define DBG_PRINTLN(...)  Serial.println(__VA_ARGS__)
 #else
@@ -47,14 +47,17 @@ class SensorInputControl {
 
 class UserInputControl {
 public:
-	UserInputControl(short open_pin, short close_pin, short ir_pin);
+	UserInputControl(short open_pin, short close_pin, short ir_pin) : open_pin(open_pin), close_pin(close_pin), ir_pin(ir_pin), remote(ir_pin) {};
+	void init(); // IMPORTANT: Must call during setup to open the right interrupts.
 
+	// Global 
 	void poll(); // Updates internal state
+	unsigned long time_since_input(); // Returns the time since the last input event
 
+	// Buttons
 	Button buttons_pressed();
 	Button last_button_pressed();
 
-	// Buttons
 	bool open_pressed();
 	bool close_pressed();
 	bool both_pressed(); 
@@ -64,8 +67,9 @@ public:
 	unsigned long time_to_last_press();
 
 	// Remote
-	bool is_receiving();
+	bool new_signal();
 	long remote_signal();
+	unsigned long get_last_signal_time();
 
 private:
 	// Pins:
@@ -84,8 +88,9 @@ private:
 
 	// For the remote:
 	IRrecv remote;
-	long last_signal;
-	long latest_signal;
+	bool new_signal_trigger; // Indicates if a new signal was received.
+	long latest_signal; // Store the latest remote signal
+	unsigned long last_remote_signal_time; // Store the last time a signal was received
 	decode_results remote_results;
 };
 
