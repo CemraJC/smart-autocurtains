@@ -32,15 +32,13 @@ setting the on_len to the desired time and num_flashes to 1.
 flashes actually update.
 
 ```cpp
-	void pip(bool r, bool g, bool b, unsigned int num_flashes=0, int between=1200)
-	void blink(bool r, bool g, bool b, unsigned int num_flashes=0, int between=2000)
+	void pip(bool r, bool g, bool b, int between=1200, unsigned int num_flashes = 0)
+	void blink(bool r, bool g, bool b, int between=2000, unsigned int num_flashes = 0)
 ```
 
 The `pip()` and `blink()` methods are short aliases for `flash()` that define
 the off_state to be literally off and pre-defined on_state lengths of 30ms and
 230ms for a "pip" and a "blink".
-
-Between controls how long between pips or blinks if multiple are active.
 
 ```cpp
 	void solid(bool r, bool g, bool b)

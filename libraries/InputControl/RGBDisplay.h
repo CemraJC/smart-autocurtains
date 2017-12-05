@@ -54,10 +54,10 @@ public:
 	void flash(bool r_on, bool g_on, bool b_on, unsigned int num_flashes=0, unsigned int on_len=1000, unsigned int off_len=1000, bool r_off=0, bool g_off=0, bool b_off=0);
 
 	// Shorter flash aliases
-	void pip(bool r, bool g, bool b, unsigned int num_flashes=0, int between=1200) { // 30ms on-time
+	void pip(bool r, bool g, bool b, int between=1200, unsigned int num_flashes = 0) { // 30ms on-time
 		flash(r, g, b, num_flashes, 30, between);
 	}; 
-	void blink(bool r, bool g, bool b, unsigned int num_flashes=0, int between=2000) { // 230ms on-time
+	void blink(bool r, bool g, bool b, int between=2000, unsigned int num_flashes = 0) { // 230ms on-time
 		flash(r, g, b, num_flashes, 230, between);
 	};
 
