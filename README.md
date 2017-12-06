@@ -163,9 +163,15 @@ There are two buttons, one to open, and one to close. If both buttons are
 pressed at once, the curtains will cancel their current motion (assuming there
 is one being made).
 
+**WARNING:** When you first press a button, the system needs time to wake up
+from low power mode. Because of this, you may need to hold one of the buttons
+for at most 1 second to get the system to respond. The system will re-enter
+low power mode after 10 seconds of no user input.
+
 If both buttons are pressed and held for 4 seconds, the entire system should
 reset - including clearing all settings, remote buttons and positions. The
 system will need to be setup from scratch if reset in this way.
+
 
 ## With the "smart" features
 
@@ -205,6 +211,45 @@ enabled.
 Whether or not this feature makes sense for you depends on your unique
 circumstance. It also assumes that your windows are actually open - otherwise,
 all it does is let in sunlight and make things worse!
+
+
+# Common Issues
+
+## I have to hold the on-board button before it works
+
+This is normal. When you first press a button, the system needs time to wake
+up from low power mode. Because of this, you may need to hold one of the
+buttons for at most 1 second to get the system to respond. The system will re-
+enter low power mode after 10 seconds of no user input.
+
+## My remote doesn't work when I try to set it up
+
+Try another remote. The system should recognize most remotes, but there are a
+few whacky ones out there that don't work for some reason. If you can't get a
+_normal_ Infra-Red TV remote to work, and you've tried other remotes, then you
+may need to reset the system.
+
+## My remote doesn't work anymore - it used to!
+
+To check that your remote has battery, point a smartphone camera at the IR LED
+on the front. Then, press a button that you have recorded on the system. If
+the camera shows a flash, then the remote is functional.
+
+If your remote is working, but the system is not responding, then try holding
+the remote really close to the IR receiver on the device, shielding if from
+the environment with your hand. If this fixes the problem, you will need to
+identify possible sources of infra-red interference and remove them from the
+environment.
+
+If the system still doesn't work, follow the troubleshooting procedure below
+to cycle the power, and if necessary, reset the entire system.
+
+## I have some other problem
+
+Follow the troubleshooting procedure below. If this still does not resolve
+your issue, then I'm out of ideas. If you find a problem that is not resolved
+by following the procedure below, don't hesitate to open a GitHub Issue and I
+will try to work with you to resolve the problem.
 
 
 # Troubleshooting

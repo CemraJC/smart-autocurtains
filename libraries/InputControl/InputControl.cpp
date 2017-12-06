@@ -8,6 +8,90 @@ Date: 05/12/2017
 
 #include "InputControl.h"
 
+/*
+====================
+SENSOR INPUT CONTROL
+====================
+*/
+
+void SensorInputControl::init() {
+	pinMode(light_pin, INPUT);
+	pinMode(temp_pin, INPUT);
+}
+
+void SensorInputControl::poll() {
+	// Don't poll too often 
+	if (millis() - last_poll_time < MIN_POLL_DELAY) {
+		return;
+	}
+
+	int light = get_light_reading();
+
+	if (abs(last_light - light) >= LIGHT_DEBOUNCE_GAP) {
+		// Check current phase
+		if (light >= LIGHT_THRESHOLD) {
+			last_brightness = LIGHT;
+		} else if (light <= DARK_THRESHOLD) {
+			last_brightness = DARK;
+		}
+
+		// Check for edges
+		if (last_real_brightness != last_brightness) {
+			// We have detected a first change, so trigger a wait timer
+			if (phase_wait_trigger == 0) {
+				phase_wait_trigger = millis();
+			}
+			
+			if (millis() - phase_wait_trigger >= DAY_PHASE_DELAY) {
+				last_real_brightness = last_brightness;
+				last_phase_edge_time = millis();
+				phase_wait_trigger = 0;
+			}
+		} else {
+			// There has been no change, so stop the timer
+			phase_wait_trigger = 0;
+		}
+	}
+
+	last_poll_time = millis();
+}
+
+unsigned int SensorInputControl::get_light_reading() {
+	// NOTE: Dividing by 2, because using a 10k pulldown resistor
+	return analogRead(light_pin)/2;
+}
+
+Brightness SensorInputControl::get_brightness() {
+	poll();
+	return last_brightness;
+}
+
+unsigned int SensorInputControl::get_temperature() {
+	poll();
+	return analogRead(temp_pin);
+}
+
+
+unsigned long SensorInputControl::last_light_transition() {
+	return last_phase_edge_time;
+}
+
+
+bool SensorInputControl::is_dark() {
+	poll();
+	return last_real_brightness == DARK;
+}
+
+bool SensorInputControl::is_light() {
+	poll();
+	return last_real_brightness == LIGHT;
+}
+
+/*
+==================
+USER INPUT CONTROL
+==================
+*/
 
 /* GLOBAL */
 
@@ -81,8 +165,12 @@ void UserInputControl::poll() {
 }
 
 // Returns shortest time since last input event
-unsigned long time_since_input() {
-	return millis() - max(last_remote_signal_time, last_button_press_time);
+unsigned long UserInputControl::time_since_input() {
+	if (any_buttons_pressed()) { // This counts as current input
+		return 0;
+	} else {
+		return millis() - max(last_remote_signal_time, last_real_button_time);
+	}
 }
 
 /* BUTTONS */
@@ -117,6 +205,11 @@ bool UserInputControl::any_buttons_pressed() {
 	return last_debounced_button != NONE;
 }
 
+bool UserInputControl::home_pressed() {
+	poll();
+	return digitalRead(home_pin);
+}
+
 unsigned long UserInputControl::last_button_press_time() {
 	return last_real_button_time;
 }
@@ -142,6 +235,6 @@ long UserInputControl::remote_signal() {
 }
 
 // Returns timestamp of last signal
-unsigned long get_last_signal_time() {
+unsigned long UserInputControl::get_last_signal_time() {
 	return last_remote_signal_time;
 }

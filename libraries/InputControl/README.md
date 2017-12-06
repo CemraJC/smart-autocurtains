@@ -9,7 +9,7 @@ Also provides a class to handle sensor input
 
 ```cpp
 // Set up the pins for user input devices.
-UserInputControl input(open_button_pin, close_button_pin, ir_remote_receiver_pin);
+UserInputControl input(open_button_pin, close_button_pin, homing_switch_pin, ir_remote_receiver_pin);
 
 // Set up pins for sensor input devices
 SensorInputControl sensors(light_sensor_pin, temperature_sensor_pin);
@@ -65,8 +65,21 @@ Returns true if both buttons are pressed.
 bool any_buttons_pressed();
 ```
 
-Returns true if any button is pressed.
+Returns true if any button is pressed (on board buttons only).
 
+```cpp
+bool home_pressed();
+```
+
+Returns true if the homing switch is activated. This is not a debounced method.
+
+The homing switch is a bit different from the other switches. It's not
+technically a user input switch, and so it does not reset the last-input timer
+and is not a debounced input method.
+
+It still polls the system (since the opportunity exists) however it's state
+doesn't come from the user input state machine and so a poll is unnecessary
+(but still beneficial).
 
 ```cpp
 Button buttons_pressed();
@@ -118,4 +131,52 @@ Returns the timestamp (in ms) of the last remote input event.
 
 ## Methods for SensorInputControl
 
-(Not done)
+```cpp
+void poll();
+```
+
+Call this every loop to keep track of the readings and the debouncing asynchrounously.
+
+```cpp
+void init();
+```
+
+Call this in setup to activate the pin modes for temperature and light.
+
+```cpp
+Brightness get_brightness();
+```
+
+Returns DARK, DUSK or LIGHT. The light sensor is "debounced" (smoothed) by two
+things: a large day-phase delay, and a mid-phase (DUSK) gap between LIGHT and
+DARK to reduce false readings from overcast conditions.
+
+```cpp
+	unsigned int get_light_reading();
+```
+
+Returns the raw light reading from the photoresistor.
+
+```cpp
+	unsigned int get_temperature();
+```
+
+Returns the (calibrated) temperature reading in degrees celcius.
+
+```cpp
+	unsigned long last_light_transition();
+```
+
+Returns the last time we accepted a transition between LIGHT and DARK
+
+```cpp
+	bool is_light();
+```
+
+Returns if we think it's LIGHT outside.
+
+```cpp
+	bool is_dark();
+```
+
+Returns if we think it's DARK outside.
