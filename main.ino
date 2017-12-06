@@ -1,9 +1,8 @@
 /* Need header comment! */
 
-#include <CheapStepper.h>
-#include <EEPROM.h>
 #include <RGBDisplay.h>
 #include <InputControl.h>
+#include <CurtainControl.h>
 
 
 CheapStepper stepper (8,9,10,11); 
