@@ -11,11 +11,7 @@ Date: 04/12/2017
 /*
 Set up the display controller and set pin modes
 */
-RGBDisplay::RGBDisplay(short red=5, short green=6, short blue=7) {
-	pins[0] = red;
-	pins[1] = green;
-	pins[2] = blue;
-
+void RGBDisplay::init() {
 	for (short i = 0; i < 3; ++i) {
 		pinMode(pins[i], OUTPUT);
 	}

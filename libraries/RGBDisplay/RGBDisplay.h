@@ -48,7 +48,9 @@ enum Output {
 
 class RGBDisplay {
 public:
-	RGBDisplay(short r_pin=5, short g_pin=6, short b_pin=7);
+	RGBDisplay(short r_pin=5, short g_pin=6, short b_pin=7) : pins({r_pin, g_pin, b_pin}) {};
+
+	void init();
 
 	// Toggle between two states asynchronously with parameters
 	void flash(bool r_on, bool g_on, bool b_on, unsigned int num_flashes=0, unsigned int on_len=1000, unsigned int off_len=1000, bool r_off=0, bool g_off=0, bool b_off=0);

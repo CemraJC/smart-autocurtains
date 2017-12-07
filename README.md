@@ -68,8 +68,9 @@ are not wiped in a loss-of-power event. In other words, you should only have
 to set up the system once.
 
 Before attempting setup, make sure that the power is on. The system should
-flash a green LED once when the power is turned on. If it is the first run, a
-red LED should turn on next.
+flash a green LED once when the power is turned on. Then, the curtains will
+automatically seek the home position. If it is the first run, a red LED should
+turn on next.
 
 ## Setting remote buttons
 

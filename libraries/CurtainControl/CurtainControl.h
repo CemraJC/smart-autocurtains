@@ -15,6 +15,7 @@ program as well.
 
 #include "Arduino.h"
 #include <CheapStepper.h>
+#include <InputControl.h>
 #include <EEPROM.h>
 
 #ifndef DEBUGGING
@@ -38,10 +39,14 @@ program as well.
 
 #define OPEN_DIRECTION true // Direction to drive the stepper to open the curtains (true for clockwise, false for CCW)
 							// This is also the direction that the stepper will run to trip the homing switch
+#define CLOSE_DIRECTION !OPEN_DIRECTION
+
 #define TOTAL_STEPS 4096	// Number of steps for a full revolution
 
 
 // Stores the current settings
+// NOTE: If adding more settings, must also add write routines for 
+// it (because C++ requires wizardry to do this dynamically)
 struct Settings {
 	// Number of steps in the close direction to reach "away" 
 	// from the "home" position
@@ -58,67 +63,17 @@ struct Settings {
 	long remote_autotemp;
 };
 
-const struct SettingsAddresses {
-	unsigned int away = SETTINGS_ADDR;
+struct SettingsAddresses {
+	int away = SETTINGS_ADDR;
 
-	unsigned int remote_open = SETTINGS_ADDR + 4;
-	unsigned int remote_close = SETTINGS_ADDR + 4*2;
-	unsigned int remote_cancel = SETTINGS_ADDR + 4*3;
-	unsigned int remote_autodawn = SETTINGS_ADDR + 4*4;
-	unsigned int remote_autotemp = SETTINGS_ADDR + 4*5;
+	int remote_open = SETTINGS_ADDR + 4;
+	int remote_close = SETTINGS_ADDR + 4*2;
+	int remote_cancel = SETTINGS_ADDR + 4*3;
+	int remote_autodawn = SETTINGS_ADDR + 4*4;
+	int remote_autotemp = SETTINGS_ADDR + 4*5;
 
-	unsigned int autodawn = SETTINGS_ADDR + 4*5 + 1;
-	unsigned int autotemp = SETTINGS_ADDR + 4*5 + 2;
-}
-
-enum StepperAction {
-	NONE,
-	OPEN,
-	CLOSE,
-	HOME
-}
-
-void EEPROMWritelong(int address, long value) {
-	//Decomposition from a long to 4 bytes by using bitshift.
-	//One = Most significant -> Four = Least significant byte
-	byte four = (value & 0xFF);
-	byte three = ((value >> 8) & 0xFF);
-	byte two = ((value >> 16) & 0xFF);
-	byte one = ((value >> 24) & 0xFF);
-
-	//Write the 4 bytes into the eeprom memory.
-	EEPROM.write(address, four);
-	EEPROM.write(address + 1, three);
-	EEPROM.write(address + 2, two);
-	EEPROM.write(address + 3, one);
-}
-
-long EEPROMReadlong(long address) {
-	//Read the 4 bytes from the eeprom memory.
-	long four = EEPROM.read(address);
-	long three = EEPROM.read(address + 1);
-	long two = EEPROM.read(address + 2);
-	long one = EEPROM.read(address + 3);
-
-	//Return the recomposed long by using bitshift.
-	return ((four << 0) & 0xFF) + ((three << 8) & 0xFFFF) + ((two << 16) & 0xFFFFFF) + ((one << 24) & 0xFFFFFFFF);
-}
-
-
-// Stores the current state (position of stepper and distance to go)
-struct state {
-	// A number between 0 (for "home") and 1 (for "away")
-	// This number is meant to be current.
-	float stepper_pos = -1; // if -1, position is unknown (needs homing)
-	unsigned float stepper_target = 0; // Where the stepper should be going to.
-
-	// True if any automatic actions should pause (for the auto-override duration)
-	// bool auto_override = false;
-
-	StepperAction current_action; // Keeps track of what we were doing.
-
-	// A timestamp to facilitate waiting before writing the settings
-	unsigned long settings_write_trigger = 0; 
+	int autodawn = SETTINGS_ADDR + 4*5 + 1;
+	int autotemp = SETTINGS_ADDR + 4*5 + 2;
 };
 
 
@@ -127,26 +82,41 @@ public:
 	CurtainControl(unsigned short s1, unsigned short s2, unsigned short s3, unsigned short s4) : s1(s1), s2(s2), s3(s3), s4(s4), stepper(s1, s2, s3, s4) {};
 
 	void poll(); // Used to keep track of asynchronous functions
+	void init(); // Used to setup the pin modes etc
 
 	// settings
-	void write_settings(); // Triggers the delayed write
+	void trigger_write(); // Triggers the delayed write (call this one)
+	void read_settings(); // Reads settings into local memory
 	Settings settings; // Modified in-place, then written manually
-	SettingsAddresses settings_addr; // Address specs
+	const SettingsAddresses settings_addr; // Address specs
 
 	// stepper control
-	void home(); // Moves to home position - does not stop until it receives a home signal.
+	void set_home(); // Sets wherever the stepper is as "home"
 	void open(); // Moves to the home position. Knows when to stop, but also expects a home signal.
 	void close(); // Moves to the away position (no feedback)
 	void cancel(); // Stops any current action
 	void step(bool open); // Moves the stepper in the direction specified by a 90deg turn
 	void get_location(); // Returns the position specifier (between 0 and 1 for home and away)
+	bool is_moving(); // Returns true or false based on if the curtain is moving or not
 
 private:
 	// Pins
 	unsigned short s1, s2, s3, s4;
+	
+	void write_settings(); // Actually writes the settings
+	
+	// A timestamp to facilitate waiting before writing the settings
+	unsigned long settings_write_trigger = 0; 
 
 	CheapStepper stepper;
-}
+	bool in_motion;
+	void set_target(long target); // Actually writes the settings
+
+	// A number between 0 (for "home") and 1 (for "away")
+	// This number is meant to be current.
+	long stepper_pos = -1; // if -1, position is unknown (needs homing)
+	long stepper_target = 0; // Where the stepper should be going to.
+};
 
 
 #endif
