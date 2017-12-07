@@ -52,7 +52,7 @@ void setup() {
 	// 	record_remote();
 	// 	record_away();
 	// }
-
+	curtain.settings.away = TOTAL_STEPS * 2;
 }
 
 void loop() {
@@ -72,7 +72,7 @@ void loop() {
 	} else if (input.both_pressed() /*|| input.remote_signal() == curtain.settings.remote_cancel*/) {
 		curtain.cancel();
 	}
-
+ 
 	curtain.poll();
 	rgb_out.update();
 
@@ -84,8 +84,10 @@ void loop() {
 void home_curtains() {
 	// We expect that a home switch will eventually
 	// be pressed! If it is not, then bad things may happen.
+	curtain.blind_rotate(true);
 	while (!input.home_pressed()) {
-		curtain.step(true);
+		curtain.poll();
 	}
+	curtain.cancel();
 	curtain.set_home();
 }

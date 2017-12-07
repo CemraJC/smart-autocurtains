@@ -40,6 +40,7 @@ program as well.
 #define OPEN_DIRECTION true // Direction to drive the stepper to open the curtains (true for clockwise, false for CCW)
 							// This is also the direction that the stepper will run to trip the homing switch
 #define CLOSE_DIRECTION !OPEN_DIRECTION
+#define MAX_BLIND_ROTATIONS 500 // Total maximum we are allowed to blindly rotate.
 
 #define TOTAL_STEPS 4096	// Number of steps for a full revolution
 
@@ -96,6 +97,7 @@ public:
 	void close(); // Moves to the away position (no feedback)
 	void cancel(); // Stops any current action
 	void step(bool open); // Moves the stepper in the direction specified by a 90deg turn
+	void blind_rotate(bool open); // Moves the stepper in the direction specified for MAX_BLIND_TURNS
 	void get_location(); // Returns the position specifier (between 0 and 1 for home and away)
 	bool is_moving(); // Returns true or false based on if the curtain is moving or not
 

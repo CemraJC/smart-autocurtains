@@ -170,9 +170,15 @@ void CurtainControl::cancel() {
 
 }
 
+// Blindly rotate with the expectation that we will be made to stop.
+void CurtainControl::blind_rotate(bool open) {
+	long steps = ((open)?(-1):(1)) * TOTAL_STEPS * MAX_BLIND_ROTATIONS;
+	set_target(steps);
+}
+
 void CurtainControl::step(bool open) {
 
-	if (stepper_pos == -1) {
+	if (stepper_pos) {
 		DBG_PRINTLN("CurtainControl: Home unknown. Cannot Move.");
 		return;
 	} else if (in_motion) {
