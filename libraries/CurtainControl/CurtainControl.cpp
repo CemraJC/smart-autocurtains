@@ -21,7 +21,7 @@ void CurtainControl::init() {
 	stepper.setRpm(16);
 
 	// Reads settings from eeprom into local memory
-	read_settings();
+	// read_settings();
 }
 
 void CurtainControl::poll() {
@@ -58,6 +58,7 @@ void CurtainControl::poll() {
 
 
 void CurtainControl::trigger_write() {
+	DBG_PRINTLN("CurtainControl: Triggered settings write.");
 	settings_write_trigger = millis();
 }
 
@@ -79,6 +80,7 @@ void CurtainControl::write_settings() {
 }
 
 void CurtainControl::read_settings() {
+	DBG_PRINTLN("CurtainControl: Settings read.");
 	// Puts the EEPROM state (may not be most recent)
 	// into the local settings state
 	EEPROM.get(settings_addr.away, settings.away);
@@ -89,6 +91,13 @@ void CurtainControl::read_settings() {
 	EEPROM.get(settings_addr.remote_cancel, settings.remote_cancel);
 	EEPROM.get(settings_addr.remote_autodawn, settings.remote_autodawn);
 	EEPROM.get(settings_addr.remote_autotemp, settings.remote_autotemp);
+}
+
+// This takes some time to do.
+void CurtainControl::reset_settings() {
+	for (int i = 0 ; i < EEPROM.length() ; i++) {
+		EEPROM.write(i, 0);
+	}
 }
 
 void EEPROMWritelong(int address, long value) {

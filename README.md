@@ -97,6 +97,9 @@ To record which buttons do what, follow these steps:
 1. Choose and press the "auto-temp" button (to enable/disable force-opening the curtains when the temperature exceeds 28 degrees C)
 1. Observe that the system flashes a blue LED exactly five times and the curtains proceed to the home position
 
+Note that it will take about 5 minutes for the settings to be saved into the
+permanent memory, so don't power down the system at least until then.
+
 **Important:** on first run, be prepared to quickly power down the system in
 the event that the homing switch does not function correctly. If the stepper
 is allowed to run past home, it may stall and/or cause damage to the device or

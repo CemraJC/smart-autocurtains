@@ -51,7 +51,7 @@ program as well.
 struct Settings {
 	// Number of steps in the close direction to reach "away" 
 	// from the "home" position
-	unsigned long away = 0;
+	long away = 0;
 
 	// Feature enabled/disabled triggers
 	bool autodawn = false;
@@ -88,6 +88,7 @@ public:
 	// settings
 	void trigger_write(); // Triggers the delayed write (call this one)
 	void read_settings(); // Reads settings into local memory
+	void reset_settings(); // Clear the entire EEPROM
 	Settings settings; // Modified in-place, then written manually
 	const SettingsAddresses settings_addr; // Address specs
 

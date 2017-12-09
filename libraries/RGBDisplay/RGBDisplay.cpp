@@ -100,7 +100,7 @@ bool RGBDisplay::active() {
 	return action != OFF;
 }
 
-// Only returns true if a flashing cycle is running
+// Only returns true if a flashing cyclbe is running
 bool RGBDisplay::is_flashing() {
 	return action == FLASH;
 }
