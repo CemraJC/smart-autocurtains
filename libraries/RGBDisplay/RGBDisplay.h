@@ -22,8 +22,8 @@ Description:
 #include "Arduino.h"
 
 // Allow the use of a debugging hook
-#ifndef DEBUGGING
-#define DEBUGGING true
+#ifndef RGB_DEBUGGING
+#define RGB_DEBUGGING false
 #endif
 
 // Holds all the state information for keeping

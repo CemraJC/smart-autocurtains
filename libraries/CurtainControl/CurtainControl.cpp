@@ -21,7 +21,15 @@ void CurtainControl::init() {
 	stepper.setRpm(16);
 
 	// Reads settings from eeprom into local memory
-	// read_settings();
+	read_settings();
+	DBG_PRINTLN(settings.away);
+	DBG_PRINTLN(settings.autodawn);
+	DBG_PRINTLN(settings.autotemp);
+	DBG_PRINTLN(settings.remote_open, HEX);
+	DBG_PRINTLN(settings.remote_close, HEX);
+	DBG_PRINTLN(settings.remote_cancel, HEX);
+	DBG_PRINTLN(settings.remote_autodawn, HEX);
+	DBG_PRINTLN(settings.remote_autotemp, HEX);
 }
 
 void CurtainControl::poll() {
@@ -58,13 +66,15 @@ void CurtainControl::poll() {
 
 
 void CurtainControl::trigger_write() {
-	DBG_PRINTLN("CurtainControl: Triggered settings write.");
+	DBG_PRINTLN("CurtainControl: Triggered settings write at time:");
 	settings_write_trigger = millis();
+	DBG_PRINTLN(settings_write_trigger);
 }
 
 void CurtainControl::write_settings() {
 	if (settings_write_trigger != 0 && millis() - settings_write_trigger >= SETTING_WRITE_TIME) { // Timer is up
-		DBG_PRINTLN("CurtainControl: Actually writing settings.");
+		DBG_PRINTLN("CurtainControl: Actually writing settings at time from trigger:");
+		DBG_PRINTLN(settings_write_trigger);
 		settings_write_trigger = 0; // stop it
 
 		// Write all the settings to the right places
@@ -76,54 +86,33 @@ void CurtainControl::write_settings() {
 		EEPROM.put(settings_addr.remote_cancel, settings.remote_cancel);
 		EEPROM.put(settings_addr.remote_autodawn, settings.remote_autodawn);
 		EEPROM.put(settings_addr.remote_autotemp, settings.remote_autotemp);
+		EEPROM.put(settings_addr.data_indicator, SETTINGS_ID);
 	}
 }
 
 void CurtainControl::read_settings() {
-	DBG_PRINTLN("CurtainControl: Settings read.");
-	// Puts the EEPROM state (may not be most recent)
-	// into the local settings state
-	EEPROM.get(settings_addr.away, settings.away);
-	EEPROM.get(settings_addr.autodawn, settings.autodawn);
-	EEPROM.get(settings_addr.autotemp, settings.autotemp);
-	EEPROM.get(settings_addr.remote_open, settings.remote_open);
-	EEPROM.get(settings_addr.remote_close, settings.remote_close);
-	EEPROM.get(settings_addr.remote_cancel, settings.remote_cancel);
-	EEPROM.get(settings_addr.remote_autodawn, settings.remote_autodawn);
-	EEPROM.get(settings_addr.remote_autotemp, settings.remote_autotemp);
+	if (EEPROM.read(settings_addr.data_indicator) == SETTINGS_ID) {
+		DBG_PRINTLN("CurtainControl: Settings read.");
+		// Puts the EEPROM state (may not be most recent)
+		// into the local settings state
+		EEPROM.get(settings_addr.away, settings.away);
+		EEPROM.get(settings_addr.autodawn, settings.autodawn);
+		EEPROM.get(settings_addr.autotemp, settings.autotemp);
+		EEPROM.get(settings_addr.remote_open, settings.remote_open);
+		EEPROM.get(settings_addr.remote_close, settings.remote_close);
+		EEPROM.get(settings_addr.remote_cancel, settings.remote_cancel);
+		EEPROM.get(settings_addr.remote_autodawn, settings.remote_autodawn);
+		EEPROM.get(settings_addr.remote_autotemp, settings.remote_autotemp);
+	} else {
+		DBG_PRINTLN("CurtainControl: No EEPROM settings to read.");
+	}
 }
 
 // This takes some time to do.
 void CurtainControl::reset_settings() {
-	for (int i = 0 ; i < EEPROM.length() ; i++) {
+	for (int i = SETTINGS_ADDR; i < SETTINGS_END_ADDR; i++) {
 		EEPROM.write(i, 0);
 	}
-}
-
-void EEPROMWritelong(int address, long value) {
-	//Decomposition from a long to 4 bytes by using bitshift.
-	//One = Most significant -> Four = Least significant byte
-	byte four = (value & 0xFF);
-	byte three = ((value >> 8) & 0xFF);
-	byte two = ((value >> 16) & 0xFF);
-	byte one = ((value >> 24) & 0xFF);
-
-	//Write the 4 bytes into the eeprom memory.
-	EEPROM.write(address, four);
-	EEPROM.write(address + 1, three);
-	EEPROM.write(address + 2, two);
-	EEPROM.write(address + 3, one);
-}
-
-long EEPROMReadlong(long address) {
-	//Read the 4 bytes from the eeprom memory.
-	long four = EEPROM.read(address);
-	long three = EEPROM.read(address + 1);
-	long two = EEPROM.read(address + 2);
-	long one = EEPROM.read(address + 3);
-
-	//Return the recomposed long by using bitshift.
-	return ((four << 0) & 0xFF) + ((three << 8) & 0xFFFF) + ((two << 16) & 0xFFFFFF) + ((one << 24) & 0xFFFFFFFF);
 }
 
 
@@ -187,7 +176,7 @@ void CurtainControl::blind_rotate(bool open) {
 
 void CurtainControl::step(bool open) {
 
-	if (stepper_pos) {
+	if (stepper_pos == -1) {
 		DBG_PRINTLN("CurtainControl: Home unknown. Cannot Move.");
 		return;
 	} else if (in_motion) {
@@ -202,7 +191,8 @@ void CurtainControl::step(bool open) {
 	if (stepper_target < 0) {\
 		DBG_PRINTLN("CurtainControl: Tried to move past home (-ve)");
 		stepper_target = 0;
-	} else if (stepper_target > settings.away) {
+	} else if (settings.away != 0 && stepper_target > settings.away) {
+		// Note: if away is zero, then we are unbounded in this direction.
 		DBG_PRINTLN("CurtainControl: Tried to move past away (+ve)");
 		stepper_target = settings.away;
 	}
@@ -216,7 +206,7 @@ void CurtainControl::set_target(long target) {
 	}
 }
 
-void CurtainControl::get_location() {
+long CurtainControl::get_location() {
 	return stepper_pos;
 }
 

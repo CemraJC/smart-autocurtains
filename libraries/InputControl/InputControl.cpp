@@ -238,3 +238,7 @@ long UserInputControl::remote_signal() {
 unsigned long UserInputControl::get_last_signal_time() {
 	return last_remote_signal_time;
 }
+
+unsigned long UserInputControl::time_to_last_signal() {
+	return millis() - last_remote_signal_time;
+}

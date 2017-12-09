@@ -32,10 +32,12 @@ program as well.
 
 // Constants
 #define SETTINGS_ADDR 0 // The starting address to write EEPROM settings to
+#define SETTINGS_END_ADDR 30 // The address that the settings stop at
 #define MAX_SETTINGS EEPROM.length() - SETTINGS_ADDR // Total limit of setting bytes we can have
 
 #define AUTO_OVERRIDE_TIME 60*60*1000 // 1 hour - the time before automatic features kick in again.
-#define SETTING_WRITE_TIME 5*60*1000 // Time to wait before writing the settings to EEPROM.
+#define SETTING_WRITE_TIME 5*1000 // Time to wait before writing the settings to EEPROM.
+#define SETTINGS_ID 134 // A random number that indicates settings have been written to EEPROM.
 
 #define OPEN_DIRECTION true // Direction to drive the stepper to open the curtains (true for clockwise, false for CCW)
 							// This is also the direction that the stepper will run to trip the homing switch
@@ -67,14 +69,16 @@ struct Settings {
 struct SettingsAddresses {
 	int away = SETTINGS_ADDR;
 
-	int remote_open = SETTINGS_ADDR + 4;
-	int remote_close = SETTINGS_ADDR + 4*2;
-	int remote_cancel = SETTINGS_ADDR + 4*3;
-	int remote_autodawn = SETTINGS_ADDR + 4*4;
-	int remote_autotemp = SETTINGS_ADDR + 4*5;
+	int remote_open = SETTINGS_ADDR + 4 + 1;
+	int remote_close = SETTINGS_ADDR + 2*(4 + 1);
+	int remote_cancel = SETTINGS_ADDR + 3*(4 + 1);
+	int remote_autodawn = SETTINGS_ADDR + 4*(4 + 1);
+	int remote_autotemp = SETTINGS_ADDR + 5*(4 + 1);
 
-	int autodawn = SETTINGS_ADDR + 4*5 + 1;
-	int autotemp = SETTINGS_ADDR + 4*5 + 2;
+	int autodawn = SETTINGS_ADDR + 5*(4 + 1) + 1;
+	int autotemp = SETTINGS_ADDR + 5*(4 + 1) + 2;
+
+	int data_indicator = SETTINGS_ADDR + 5*(4 + 1) + 3;
 };
 
 
@@ -99,17 +103,16 @@ public:
 	void cancel(); // Stops any current action
 	void step(bool open); // Moves the stepper in the direction specified by a 90deg turn
 	void blind_rotate(bool open); // Moves the stepper in the direction specified for MAX_BLIND_TURNS
-	void get_location(); // Returns the position specifier (between 0 and 1 for home and away)
+	long get_location(); // Returns the position specifier
 	bool is_moving(); // Returns true or false based on if the curtain is moving or not
 
 private:
 	// Pins
 	unsigned short s1, s2, s3, s4;
 	
-	void write_settings(); // Actually writes the settings
-	
 	// A timestamp to facilitate waiting before writing the settings
 	unsigned long settings_write_trigger = 0; 
+	void write_settings(); // Actually writes the settings
 
 	CheapStepper stepper;
 	bool in_motion;
