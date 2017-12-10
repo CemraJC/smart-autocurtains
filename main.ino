@@ -22,12 +22,13 @@
 
 #define RECORD_LOOPS 3 // Number of times need to check a button before recording
 
+#define NO_HOLD_DEBOUNCE 500 // Time to wait after holding a button to allow pressing it again
 #define SHORT_HOLD 2000 // ms to hold a button for to count as a "short hold"
 #define LONG_HOLD 4000 // ms to hold a button for to count as a "long hold"
-#define USER_CANCEL_DELAY 60*60*1000 // ms to wait before activating auto-features again
+#define USER_CANCEL_DELAY 1000 /*60*60*1000*/ // ms to wait before activating auto-features again
 
 #define AUTOTEMP_THRESHOLD 30
-#define AUTODAWN_OPEN_DELAY 3*60*60*1000 // 3 Hours
+#define AUTODAWN_OPEN_DELAY 5000 /*3*60*60*1000*/ // 3 Hours
 
 RGBDisplay rgb_out(5,6,7); // r, g, b pins
 UserInputControl input(3, 4, 13, 11); // Open, Close, Home and IR pins
@@ -37,6 +38,7 @@ CurtainControl curtain(8,9,10,12);  // Stepper pins 1,2,3 and 4
 unsigned int loop_pause = 1; // For controlling the speed of the loop
 bool autodawn_reopen_trigger = false; // If true, will reopen curtains after time is up (unless cancelled)
 long remote_signal = 0;
+bool setting_changed = false; // Track changes (no hold-down on settings)
 
 void setup() {
 
@@ -67,19 +69,6 @@ void setup() {
 		record_away();
 		curtain.trigger_write();
 	}
-
-	serial_print_eeprom();
-	DBG_PRINTLN();
-	DBG_PRINTLN("Settings:");
-	DBG_PRINTLN(curtain.settings.away);
-	DBG_PRINTLN(curtain.settings.autodawn);
-	DBG_PRINTLN(curtain.settings.autotemp);
-	DBG_PRINTLN(curtain.settings.remote_open, HEX);
-	DBG_PRINTLN(curtain.settings.remote_close, HEX);
-	DBG_PRINTLN(curtain.settings.remote_cancel, HEX);
-	DBG_PRINTLN(curtain.settings.remote_autodawn, HEX);
-	DBG_PRINTLN(curtain.settings.remote_autotemp, HEX);
-
 }
 
 void loop() {
@@ -114,14 +103,41 @@ void loop() {
 	}
 
 	// Handle changes in settings
-	if (remote_autodawn() && input.time_to_last_signal() > SHORT_HOLD) {
+	if (!setting_changed && remote_autodawn()) {
 		curtain.settings.autodawn = !curtain.settings.autodawn;
 		DBG_PRINTLN(String("Settings Autodawn to ") + String(curtain.settings.autodawn));
+
+		if (curtain.settings.autodawn) {
+			Serial.println("Autodawn on pip");
+			rgb_out.pip(0, 1, 0, 1, 500);
+		} else {
+			Serial.println("Autodawn off pip");
+			rgb_out.pip(1, 0, 0, 1, 500);
+		}
+
+		rgb_out.update(); // Need to call straight away for some reason
 		curtain.trigger_write();
-	} else if (remote_autotemp() && input.time_to_last_signal() > SHORT_HOLD) {
+		setting_changed = true;
+	} else if (!setting_changed && remote_autotemp()) {
 		curtain.settings.autotemp = !curtain.settings.autotemp;
 		DBG_PRINTLN(String("Settings Autotemp to ") + String(curtain.settings.autotemp));
+
+		if (curtain.settings.autotemp) {
+			rgb_out.pip(0, 1, 0, 1, 500);
+		} else {
+			rgb_out.pip(1, 0, 0, 1, 500);
+		}
+
+		rgb_out.update();
 		curtain.trigger_write();
+		setting_changed = true;
+	}
+
+	// Allow settings changes again
+	if (setting_changed 
+		&& !remote_autodawn() && !remote_autotemp() 
+		&& input.time_to_last_signal() > NO_HOLD_DEBOUNCE) {
+		setting_changed = false;
 	}
 
 	// Reset timer (reset entire system after long hold)
@@ -132,7 +148,7 @@ void loop() {
 	// Autodawn feature
 	if (curtain.settings.autodawn && input.time_since_input() >= USER_CANCEL_DELAY) {
 		// If it was dark and getting light...
-		if (!autodawn_reopen_trigger && sensors.get_brightness() == LIGHT && millis() - sensors.last_light_transition() < AUTODAWN_OPEN_DELAY) {
+		if (!autodawn_reopen_trigger && sensors.is_light() && millis() - sensors.last_light_transition() < AUTODAWN_OPEN_DELAY) {
 			// Close the curtains
 			curtain.close();
 			autodawn_reopen_trigger = true;

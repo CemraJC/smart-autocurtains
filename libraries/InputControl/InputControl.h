@@ -61,7 +61,6 @@ public:
 
 	void poll();
 
-	Brightness get_brightness();
 	unsigned int get_light_reading();
 
 	unsigned int get_temperature();
@@ -76,6 +75,7 @@ private:
 	short light_pin;
 	short temp_pin;
 
+	Brightness get_brightness();
 	// To stop computation if difference isn't enough
 	int last_light = 0;
 
