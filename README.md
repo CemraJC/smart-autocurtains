@@ -83,21 +83,25 @@ To check that your remote has battery, point a smartphone camera at the IR LED
 on the front. Then, press a button. If the camera shows a flash, then the
 remote is functional.
 
+Some remotes are more reliable than others. Hold the remote a least 2 feet
+(0.5 meters) away from the IR receiver and press each button quickly.
+
 To record which buttons do what, follow these steps:
 
 1. Observe that a red LED is lit up on the device (first run only)
 1. Press the button on the remote that you want to correspond to "open"
+1. Keep pressing this button (it needs four consecutive signals). If the LED flashes Red/Blue (Purple) then the remote sent a partial signal and you need to start again. Make sure that each press is quick.
 1. Observe that the system flashes a blue LED exactly once
-1. Choose and press the "close" button on the remote
+1. Choose and press the "close" button on the remote (4 times again)
 1. Observe that the system flashes a blue LED exactly twice
-1. Choose and press the "cancel" button
+1. Choose and press the "cancel" button (same deal as with the others)
 1. Observe that the system flashes a blue LED exactly three times
 1. Choose and press the "auto-dawn" button (to enable/disable closing the curtains when it gets bright in the morning)
 1. Observe that the system flashes a blue LED exactly four times
 1. Choose and press the "auto-temp" button (to enable/disable force-opening the curtains when the temperature exceeds 28 degrees C)
 1. Observe that the system flashes a blue LED exactly five times and the curtains proceed to the home position
 
-Note that it will take about 5 minutes for the settings to be saved into the
+Note that it will take about 30 seconds for the settings to be saved into the
 permanent memory, so don't power down the system at least until then.
 
 **Important:** on first run, be prepared to quickly power down the system in
@@ -137,8 +141,8 @@ curtains into the desired position. Alternatively, press and hold the onboard
 system buttons (this should always work).
 
 Once you are happy with the curtain's position as the "away" position, press
-the "cancel" button you set up earlier. The away position is now set, it
-should not need to be set again (unless you reset the system). 
+and hold both onboard buttons for 2 seconds. The away position is now set, it
+should not need to be set again (unless you reset the system).
 
 ## All done!
 
@@ -160,6 +164,9 @@ motion.
 
 Once a motion is canceled, a subsequent motion will pick back up from where
 the curtains currently are.
+
+Note that, since this system is designed to be flexible, remote performance is
+not always as good as if it was a native system.
 
 ## Using the on-board buttons
 
