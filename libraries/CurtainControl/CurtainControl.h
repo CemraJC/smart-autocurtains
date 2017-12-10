@@ -36,7 +36,7 @@ program as well.
 #define MAX_SETTINGS EEPROM.length() - SETTINGS_ADDR // Total limit of setting bytes we can have
 
 #define AUTO_OVERRIDE_TIME 60*60*1000 // 1 hour - the time before automatic features kick in again.
-#define SETTING_WRITE_TIME 5*1000 // Time to wait before writing the settings to EEPROM.
+#define SETTING_WRITE_TIME 30*1000 // Time to wait before writing the settings to EEPROM.
 #define SETTINGS_ID 134 // A random number that indicates settings have been written to EEPROM.
 
 #define OPEN_DIRECTION true // Direction to drive the stepper to open the curtains (true for clockwise, false for CCW)
@@ -69,16 +69,16 @@ struct Settings {
 struct SettingsAddresses {
 	int away = SETTINGS_ADDR;
 
-	int remote_open = SETTINGS_ADDR + 4 + 1;
-	int remote_close = SETTINGS_ADDR + 2*(4 + 1);
-	int remote_cancel = SETTINGS_ADDR + 3*(4 + 1);
-	int remote_autodawn = SETTINGS_ADDR + 4*(4 + 1);
-	int remote_autotemp = SETTINGS_ADDR + 5*(4 + 1);
+	int remote_open = SETTINGS_ADDR + 4;
+	int remote_close = SETTINGS_ADDR + 2*4;
+	int remote_cancel = SETTINGS_ADDR + 3*4;
+	int remote_autodawn = SETTINGS_ADDR + 4*4;
+	int remote_autotemp = SETTINGS_ADDR + 5*4;
 
-	int autodawn = SETTINGS_ADDR + 5*(4 + 1) + 1;
-	int autotemp = SETTINGS_ADDR + 5*(4 + 1) + 2;
+	int autodawn = SETTINGS_ADDR + 6*4;
+	int autotemp = SETTINGS_ADDR + 6*4 + 1;
 
-	int data_indicator = SETTINGS_ADDR + 5*(4 + 1) + 3;
+	int data_indicator = SETTINGS_ADDR + 6*4 + 2;
 };
 
 

@@ -20,10 +20,10 @@ void SensorInputControl::init() {
 }
 
 void SensorInputControl::poll() {
-	// Don't poll too often 
-	if (millis() - last_poll_time < MIN_POLL_DELAY) {
-		return;
-	}
+	// // Don't poll too often 
+	// if (millis() - last_poll_time < MIN_POLL_DELAY) {
+	// 	return;
+	// }
 
 	int light = get_light_reading();
 
@@ -53,7 +53,7 @@ void SensorInputControl::poll() {
 		}
 	}
 
-	last_poll_time = millis();
+	// last_poll_time = millis();
 }
 
 unsigned int SensorInputControl::get_light_reading() {
@@ -107,11 +107,6 @@ void UserInputControl::init() {
 
 
 void UserInputControl::poll() {
-	// Don't poll too often 
-	if (millis() - last_poll_time < MIN_POLL_DELAY) {
-		return;
-	}
-
 	// Check the buttons
 	bool open = digitalRead(open_pin);
 	bool close = digitalRead(close_pin);
@@ -159,9 +154,6 @@ void UserInputControl::poll() {
 			last_real_button_time = millis();
 		}
 	}
-
-	// Keep track of the last time we polled
-	last_poll_time = millis();
 }
 
 // Returns shortest time since last input event

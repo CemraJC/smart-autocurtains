@@ -24,6 +24,10 @@
 
 #define SHORT_HOLD 2000 // ms to hold a button for to count as a "short hold"
 #define LONG_HOLD 4000 // ms to hold a button for to count as a "long hold"
+#define USER_CANCEL_DELAY 60*60*1000 // ms to wait before activating auto-features again
+
+#define AUTOTEMP_THRESHOLD 30
+#define AUTODAWN_OPEN_DELAY 3*60*60*1000 // 3 Hours
 
 RGBDisplay rgb_out(5,6,7); // r, g, b pins
 UserInputControl input(3, 4, 13, 11); // Open, Close, Home and IR pins
@@ -31,6 +35,7 @@ SensorInputControl sensors(A0, A1); // Light pin, Temp Pin
 CurtainControl curtain(8,9,10,12);  // Stepper pins 1,2,3 and 4
 
 unsigned int loop_pause = 1; // For controlling the speed of the loop
+bool autodawn_reopen_trigger = false; // If true, will reopen curtains after time is up (unless cancelled)
 
 void setup() {
 
@@ -80,8 +85,10 @@ void loop() {
 
 	// Control the low power (sleep) state of the system
 	if (loop_pause != ACTIVE_LOOP && (input.time_since_input() < SLEEP_TIME || curtain.is_moving())) {
+		DBG_PRINTLN("Waking From Sleep Mode");
 		loop_pause = ACTIVE_LOOP;
 	} else if (loop_pause != SLEEP_LOOP && input.time_since_input() >= SLEEP_TIME && !curtain.is_moving()) {
+		DBG_PRINTLN("Entering Sleep Mode");
 		loop_pause = SLEEP_LOOP;
 	}
 
@@ -114,13 +121,32 @@ void loop() {
 	}
 
 	// Autodawn feature
-	if (curtain.settings.autodawn) {
+	if (curtain.settings.autodawn && input.time_since_input() >= USER_CANCEL_DELAY) {
+		// If it was dark and getting light...
+		if (!autodawn_reopen_trigger && sensors.get_brightness() == LIGHT && millis() - sensors.last_light_transition() < AUTODAWN_OPEN_DELAY) {
+			// Close the curtains
+			curtain.close();
+			autodawn_reopen_trigger = true;
+		} 
 
+		// If we had closed the curtains and it's been enough time...
+		if (autodawn_reopen_trigger && millis() - sensors.last_light_transition() >= AUTODAWN_OPEN_DELAY) {
+			// Reopen the curtains
+			curtain.open();
+			autodawn_reopen_trigger = false;
+		}
 	}
 
-	// Autotemp feature
-	if (curtain.settings.autotemp) {
+	// Autotemp feature - open if temps get too high.
+	if (curtain.settings.autotemp && input.time_since_input() >= USER_CANCEL_DELAY) {
+		if (sensors.get_temperature() >= AUTOTEMP_THRESHOLD) {
+			curtain.open();
+		}
+	}
 
+	// Cancel any automatic functions
+	if (input.time_since_input() <= USER_CANCEL_DELAY) {
+			autodawn_reopen_trigger = false;
 	}
 
 	curtain.poll();

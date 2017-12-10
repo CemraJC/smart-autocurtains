@@ -75,6 +75,12 @@ void RGBDisplay::solid(bool r, bool g, bool b) {
 
 void RGBDisplay::flash(bool r_on, bool g_on, bool b_on, unsigned int num_flashes=0, unsigned int on_len=1000, unsigned int off_len=1000, bool r_off=0, bool g_off=0, bool b_off=0) {
 	if (RGB_DEBUGGING) {Serial.println("RGB LED flash initialized.");}
+	
+	// Don't start another flash until the current one is cancelled.
+	if (action == FLASH) {
+		return;
+	}
+	
 	action = FLASH;
 	flash_spec.on_state[0] = r_on;
 	flash_spec.on_state[1] = g_on;

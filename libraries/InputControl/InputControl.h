@@ -30,7 +30,7 @@ Description:
 #	define DBG_PRINTLN(...)
 #endif
 
-#define MIN_POLL_DELAY 1 // ms to wait before polling again.
+// #define MIN_POLL_DELAY 1 // ms to wait before polling again.
 #define DEBOUNCE_DELAY 30 // ms to wait before locking in a signal as true.
 
 // Sensor calibration constants for light detection

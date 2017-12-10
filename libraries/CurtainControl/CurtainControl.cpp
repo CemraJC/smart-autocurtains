@@ -22,6 +22,7 @@ void CurtainControl::init() {
 
 	// Reads settings from eeprom into local memory
 	read_settings();
+	DBG_PRINTLN("Settings:");
 	DBG_PRINTLN(settings.away);
 	DBG_PRINTLN(settings.autodawn);
 	DBG_PRINTLN(settings.autotemp);
