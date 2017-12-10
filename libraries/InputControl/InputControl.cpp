@@ -216,12 +216,17 @@ unsigned long UserInputControl::time_to_last_press() {
 // Returns true only if we have a new signal
 bool UserInputControl::new_signal() {
 	poll();
+	if (new_signal_trigger) { DBG_PRINTLN("New Signal!"); }
 	return new_signal_trigger;
 }
 
 // Returns last signal we received
 long UserInputControl::remote_signal() {
 	poll();
+	if (new_signal_trigger) { 
+		DBG_PRINT("Retreived: ");
+		DBG_PRINTLN(latest_signal, BIN);
+	}
 	new_signal_trigger = false; // signal retrieved - no longer new.
 	return latest_signal;
 }

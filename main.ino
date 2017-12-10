@@ -36,6 +36,7 @@ CurtainControl curtain(8,9,10,12);  // Stepper pins 1,2,3 and 4
 
 unsigned int loop_pause = 1; // For controlling the speed of the loop
 bool autodawn_reopen_trigger = false; // If true, will reopen curtains after time is up (unless cancelled)
+long remote_signal = 0;
 
 void setup() {
 
@@ -92,24 +93,32 @@ void loop() {
 		loop_pause = SLEEP_LOOP;
 	}
 
+	// Get signal from the remote
+	// Signals only last for a single loop
+	if (input.new_signal()) {
+		remote_signal = input.remote_signal();
+	} else {
+		remote_signal = 0;
+	}
+
 	// Handle open/close/cancel requests
 	if (input.open_pressed() || remote_open()) {
 		curtain.open();
-		rgb_out.pip(1, 1, 1, 1);
+		rgb_out.pip(1, 1, 1, 1, 500);
 	} else if (input.close_pressed() || remote_close()) {
 		curtain.close();
-		rgb_out.pip(1, 1, 1, 1);
+		rgb_out.pip(1, 1, 1, 1, 500);
 	} else if (input.both_pressed() || remote_cancel()) {
 		curtain.cancel();
-		rgb_out.pip(1, 1, 1, 1);
+		rgb_out.pip(1, 1, 1, 1, 500);
 	}
 
 	// Handle changes in settings
-	if (remote_autodawn()) {
+	if (remote_autodawn() && input.time_to_last_signal() > SHORT_HOLD) {
 		curtain.settings.autodawn = !curtain.settings.autodawn;
 		DBG_PRINTLN(String("Settings Autodawn to ") + String(curtain.settings.autodawn));
 		curtain.trigger_write();
-	} else if (remote_autotemp()) {
+	} else if (remote_autotemp() && input.time_to_last_signal() > SHORT_HOLD) {
 		curtain.settings.autotemp = !curtain.settings.autotemp;
 		DBG_PRINTLN(String("Settings Autotemp to ") + String(curtain.settings.autotemp));
 		curtain.trigger_write();
@@ -287,6 +296,15 @@ void record_away() {
 
 	// Need to hold cancel on remote or buttons for SHORT_HOLD ms for this to exit
 	while (true) {
+
+		// Get signal from the remote
+		// Signals only last for a single loop
+		if (input.new_signal()) {
+			remote_signal = input.remote_signal();
+		} else {
+			remote_signal = 0;
+		}
+
 		if (input.open_pressed() || remote_open()) {
 			curtain.step(true);
 		} else if (input.close_pressed() || remote_close()) {
@@ -329,7 +347,8 @@ void home_curtains() {
 
 // Clears the EEPROM and restart the system
 void reset_system() {
-	rgb_out.solid(1, 1, 1);
+	rgb_out.solid(1, 0, 0);
+	delay(1000);
 	curtain.reset_settings();
 	soft_reset();
 }
@@ -346,23 +365,23 @@ Checking remote values
 */
 
 bool remote_open() {
-	return input.new_signal() && input.remote_signal() == curtain.settings.remote_open;
+	return remote_signal == curtain.settings.remote_open;
 }
 
 bool remote_close() {
-	return input.new_signal() && input.remote_signal() == curtain.settings.remote_close;
+	return remote_signal == curtain.settings.remote_close;
 }
 
 bool remote_cancel() {
-	return input.new_signal() && input.remote_signal() == curtain.settings.remote_cancel;
+	return remote_signal == curtain.settings.remote_cancel;
 }
 
 bool remote_autodawn() {
-	return input.new_signal() && input.remote_signal() == curtain.settings.remote_autodawn;
+	return remote_signal == curtain.settings.remote_autodawn;
 }
 
 bool remote_autotemp() {
-	return input.new_signal() && input.remote_signal() == curtain.settings.remote_autotemp;
+	return remote_signal == curtain.settings.remote_autotemp;
 }
 
 
