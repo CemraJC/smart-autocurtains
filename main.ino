@@ -25,10 +25,10 @@
 #define NO_HOLD_DEBOUNCE 500 // Time to wait after holding a button to allow pressing it again
 #define SHORT_HOLD 2000 // ms to hold a button for to count as a "short hold"
 #define LONG_HOLD 4000 // ms to hold a button for to count as a "long hold"
-#define USER_CANCEL_DELAY 1000 /*60*60*1000*/ // ms to wait before activating auto-features again
+#define USER_CANCEL_DELAY 60*60*1000 // ms to wait before activating auto-features again
 
 #define AUTOTEMP_THRESHOLD 30
-#define AUTODAWN_OPEN_DELAY 5000 /*3*60*60*1000*/ // 3 Hours
+#define AUTODAWN_OPEN_DELAY 3*60*60*1000 // 3 Hours before re-open
 
 RGBDisplay rgb_out(5,6,7); // r, g, b pins
 UserInputControl input(3, 4, 13, 11); // Open, Close, Home and IR pins
@@ -152,11 +152,13 @@ void loop() {
 			// Close the curtains
 			curtain.close();
 			autodawn_reopen_trigger = true;
+			DBG_PRINTLN("Autodawn: Close curtains, getting bright");
 		} 
 
 		// If we had closed the curtains and it's been enough time...
 		if (autodawn_reopen_trigger && millis() - sensors.last_light_transition() >= AUTODAWN_OPEN_DELAY) {
 			// Reopen the curtains
+			DBG_PRINTLN("Autodawn: Reopen curtains, time's up.");
 			curtain.open();
 			autodawn_reopen_trigger = false;
 		}
@@ -165,6 +167,7 @@ void loop() {
 	// Autotemp feature - open if temps get too high.
 	if (curtain.settings.autotemp && input.time_since_input() >= USER_CANCEL_DELAY) {
 		if (sensors.get_temperature() >= AUTOTEMP_THRESHOLD) {
+			DBG_PRINTLN("Autotemp: Open curtains, too hot.");
 			curtain.open();
 		}
 	}

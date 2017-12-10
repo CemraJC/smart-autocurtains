@@ -38,7 +38,7 @@ Description:
 #define DUSK_GAP 40
 #define LIGHT_THRESHOLD DARK_THRESHOLD + DUSK_GAP
 #define LIGHT_DEBOUNCE_GAP 4 // Gap between light readings before we recalculate state
-#define DAY_PHASE_DELAY /*30*60**/2*1000 // Time in ms between accepting a measured change in the current day phase
+#define DAY_PHASE_DELAY 10*60*1000 // Time (10 mins) in ms between accepting a measured change in the current day phase
 
 
 enum Button {
