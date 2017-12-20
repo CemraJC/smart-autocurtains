@@ -28,7 +28,7 @@
 #define USER_CANCEL_DELAY 60*60*1000 // ms to wait before activating auto-features again
 
 #define AUTOTEMP_THRESHOLD 30
-#define AUTODAWN_OPEN_DELAY 3*60*60*1000 // 3 Hours before re-open
+#define AUTODAWN_OPEN_DELAY 3*60*60*1000 // 3 Hours before re-open`
 
 RGBDisplay rgb_out(5,6,7); // r, g, b pins
 UserInputControl input(3, 4, 13, 11); // Open, Close, Home and IR pins
